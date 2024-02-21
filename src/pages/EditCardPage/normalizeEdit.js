@@ -16,4 +16,31 @@ const fromServer = (dataFromServer) => {
     zip: dataFromServer.address.zip,
   };
 };
-export { fromServer };
+
+function normalizeCard(input) {
+  return {
+    title: input.title || "",
+    subtitle: input.subTitle || "",
+    description: input.description || "",
+    phone: input.phone || "",
+    email: input.email || "",
+    web: input.web || "",
+    image: {
+      url: input.url || "",
+      alt: input.alt || ""
+    },
+    address: {
+      state: input.state || "",
+      country: input.country || "",
+      city: input.city || "",
+      street: input.street || "",
+      houseNumber: input.houseNumber || "",
+      zip: input.zip || ""
+    }
+  };
+}
+
+
+
+
+export { fromServer, normalizeCard };

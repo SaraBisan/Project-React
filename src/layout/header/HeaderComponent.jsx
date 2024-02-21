@@ -1,5 +1,6 @@
 import * as React from "react";
 import AppBar from "@mui/material/AppBar";
+import { toast } from "react-toastify";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
 import IconButton from "@mui/material/IconButton";
@@ -8,20 +9,27 @@ import Badge from "@mui/material/Badge";
 import MenuItem from "@mui/material/MenuItem";
 import Menu from "@mui/material/Menu";
 import MenuIcon from "@mui/icons-material/Menu";
+import LoginOutlined from "@mui/icons-material/LoginRounded"
+import RegisterOutlined from "@mui/icons-material/AppRegistrationRounded"
+
 import AccountCircle from "@mui/icons-material/AccountCircle";
 import MailIcon from "@mui/icons-material/Mail";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import MoreIcon from "@mui/icons-material/MoreVert";
 import { Switch } from "@mui/material";
-import Links from "./ui/Links";
+import Links, { LinksMobile } from "./ui/Links";
 import LeftDrawerComponent from "./ui/LeftDrawerComponent";
 import { useState } from "react";
 import FilterComponent from "./ui/FilterComponent";
-
+import { useUser } from "../../store/loginContext";
+import { useNavigate } from 'react-router-dom'
+import ROUTES from "../../routes/ROUTES";
 const HeaderComponent = ({ isDarkTheme, onThemeChange }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
+  const { user, logOut } = useUser()
+  const navigate = useNavigate()
 
   const isMenuOpen = Boolean(anchorEl);
   const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
@@ -71,8 +79,38 @@ const HeaderComponent = ({ isDarkTheme, onThemeChange }) => {
       open={isMenuOpen}
       onClose={handleMenuClose}
     >
-      <MenuItem onClick={handleMenuClose}>Profile</MenuItem>
-      <MenuItem onClick={handleMenuClose}>My account</MenuItem>
+      {user ? <>
+        <MenuItem onClick={() => {
+          navigate("/profile")
+          handleMenuClose()
+        }}>Profile</MenuItem>
+        <MenuItem onClick={() => {
+          handleMenuClose()
+          logOut()
+          navigate(ROUTES.LOGIN)
+          toast.success("🦄 Logged out Successfully", {
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "dark",
+          });
+        }}>Sign out</MenuItem>
+      </> : <>
+        <MenuItem onClick={() => {
+          navigate(ROUTES.LOGIN)
+          handleMenuClose()
+        }}>Sign in</MenuItem>
+        <MenuItem onClick={() => {
+          navigate(ROUTES.REGISTER)
+          handleMenuClose()
+        }}>Sign up</MenuItem>
+      </>}
+
+
     </Menu>
   );
 
@@ -93,56 +131,55 @@ const HeaderComponent = ({ isDarkTheme, onThemeChange }) => {
       open={isMobileMenuOpen}
       onClose={handleMobileMenuClose}
     >
-      <MenuItem>
-        <IconButton size="large" aria-label="show 4 new mails" color="inherit">
-          <Badge badgeContent={4} color="error">
-            <MailIcon />
-          </Badge>
-        </IconButton>
-        <p>Messages!!</p>
-      </MenuItem>
-      <MenuItem>
-        <IconButton
-          size="large"
-          aria-label="show 17 new notifications"
-          color="inherit"
-        >
-          <Badge badgeContent={17} color="error">
-            <NotificationsIcon />
-          </Badge>
-        </IconButton>
-        <p>Notifications</p>
-      </MenuItem>
-      <MenuItem onClick={handleProfileMenuOpen}>
-        <IconButton
-          size="large"
-          aria-label="account of current user"
-          aria-controls="primary-search-account-menu"
-          aria-haspopup="true"
-          color="inherit"
-        >
-          <AccountCircle />
-        </IconButton>
-        <p>Profile</p>
-      </MenuItem>
+      <LinksMobile handleMobileMenuClose={handleMobileMenuClose} />
+      {user ? <>
+        <MenuItem onClick={() => {
+          handleMobileMenuClose()
+          logOut()
+          navigate(ROUTES.LOGIN)
+          toast.success("🦄 Logged out Successfully", {
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "dark"
+          })
+
+        }}>
+          <p>Sign out</p>
+        </MenuItem>
+      </> : <>
+        <MenuItem onClick={() => {
+          navigate(ROUTES.LOGIN)
+          handleMobileMenuClose()
+        }}>
+
+          <p>Sign in</p>
+        </MenuItem>
+        <MenuItem onClick={() => {
+          navigate(ROUTES.REGISTER)
+          handleMobileMenuClose()
+        }}>
+          <p>Sign up</p>
+        </MenuItem>
+
+      </>}
+
+
     </Menu>
   );
+
 
   return (
     <Box sx={{ flexGrow: 1, mb: 2 }}>
       <AppBar position="static">
         <Toolbar>
-          <IconButton
-            size="large"
-            edge="start"
-            color="inherit"
-            aria-label="open drawer"
-            sx={{ mr: 2 }}
-            onClick={handleOpenDrawerClick}
-          >
-            <MenuIcon />
-          </IconButton>
+
           <Typography
+            onClick={() => navigate(ROUTES.HOME)}
             variant="h6"
             noWrap
             component="div"
@@ -165,34 +202,19 @@ const HeaderComponent = ({ isDarkTheme, onThemeChange }) => {
           </Box>
           <Box sx={{ flexGrow: 1 }} />
           <Box sx={{ display: { xs: "none", md: "flex" } }}>
-            <IconButton
-              size="large"
-              aria-label="show 4 new mails"
-              color="inherit"
-            >
-              <Badge badgeContent={4} color="error">
-                <MailIcon />
-              </Badge>
-            </IconButton>
-            <IconButton
-              size="large"
-              aria-label="show 17 new notifications"
-              color="inherit"
-            >
-              <Badge badgeContent={17} color="error">
-                <NotificationsIcon />
-              </Badge>
-            </IconButton>
+
             <IconButton
               size="large"
               edge="end"
               aria-label="account of current user"
               aria-controls={menuId}
+              style={{ display: 'flex', flexDirection: 'row', columnGap: '.25rem' }}
               aria-haspopup="true"
               onClick={handleProfileMenuOpen}
               color="inherit"
             >
-              <AccountCircle />
+              {user && <p style={{ fontSize: '14px' }}>{user.name.first + " " + user.name.last}</p>}
+              {user ? <AccountCircle /> : <LoginOutlined />}
             </IconButton>
           </Box>
           <Box sx={{ display: { xs: "flex", md: "none" } }}>
@@ -211,10 +233,10 @@ const HeaderComponent = ({ isDarkTheme, onThemeChange }) => {
       </AppBar>
       {renderMobileMenu}
       {renderMenu}
-      <LeftDrawerComponent
+      {/*<LeftDrawerComponent
         isOpen={isOpen}
         onCloseDrawer={handleCloseDrawerClick}
-      />
+          />*/}
     </Box>
   );
 };

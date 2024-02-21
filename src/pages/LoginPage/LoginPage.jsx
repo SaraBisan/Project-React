@@ -18,7 +18,7 @@ import CopyrightComponent from "./ui/CopyrightComponent";
 
 import ROUTES from "../../routes/ROUTES";
 import axios from "axios";
-import LoginContext from "../../store/loginContext";
+import LoginContext, { useUser } from "../../store/loginContext";
 import { jwtDecode } from "jwt-decode";
 import { toast } from "react-toastify";
 import validateLogin, {
@@ -32,7 +32,7 @@ const LoginPage = () => {
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const navigate = useNavigate();
-  const { setLogin } = useContext(LoginContext);
+  const { setUser } = useUser();
   const handleEmailChange = (e) => {
     setEmailValue(e.target.value);
   };
@@ -50,9 +50,46 @@ const LoginPage = () => {
       console.log("data from axios", data);
       localStorage.setItem("token", data);
       const userInfoFromToken = jwtDecode(data);
-      console.log("userInfoFromToken", userInfoFromToken);
-      setLogin(userInfoFromToken);
-      toast.success("🦄 LoggedIn Successfully", {
+      axios
+        .get("/users/" + userInfoFromToken._id)
+        .then(({ data }) => {
+          setUser(data);
+          console.log("userInfoFromToken", userInfoFromToken);
+          toast.success("🦄 LoggedIn Successfully", {
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "dark",
+          });
+          navigate(ROUTES.HOME);
+        })
+        .catch((err) => {
+
+          toast.error(`🦄 LoggedIn Failed.. ${err.message}`, {
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "dark",
+          });
+        });
+
+
+    } catch (err) {
+      navigate(ROUTES.LOGIN)
+      const errByFieldIfExists = err.response.data.split("Joi Error:")[1]
+      let error = "Logged in failed, please try again later";
+      if (errByFieldIfExists) {
+        error = errByFieldIfExists
+      }
+      toast.error(`🦄  LoggedIn Failed ${error}`, {
         position: "top-right",
         autoClose: 5000,
         hideProgressBar: false,
@@ -62,10 +99,9 @@ const LoginPage = () => {
         progress: undefined,
         theme: "dark",
       });
-      navigate(ROUTES.HOME);
-    } catch (err) {
+
       console.log("err from axios", err);
-      setLogin(null);
+      setUser(null);
       localStorage.clear();
     }
   };

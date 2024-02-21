@@ -5,11 +5,11 @@ import HeaderComponent from "./header/HeaderComponent";
 import MainComponent from "./main/MainComponent";
 import CssBaseline from "@mui/material/CssBaseline";
 import { useState } from "react";
-import useAutoLogin from "../hooks/useAutoLogin";
 import Typography from "@mui/material/Typography";
+import { useUser } from "../store/loginContext";
 
 const LayoutComponent = ({ children }) => {
-  const finishAutoLogin = useAutoLogin();
+  const { finishAutoLogin } = useUser();
   const [isDarkTheme, setDarkTheme] = useState(false);
 
   const themes = tmc({
@@ -39,7 +39,6 @@ const LayoutComponent = ({ children }) => {
           <Typography variant="h1">Loading...</Typography>
         )}
       </MainComponent>
-      <FooterComponent />
     </ThemeProvider>
   );
 };

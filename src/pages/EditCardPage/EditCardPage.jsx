@@ -5,9 +5,12 @@ import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import axios from "axios";
 import TextInputComponent from "../../components/TextInputComponent";
 import validateSchema from "../../validation/cardValidation";
-import LoginContext from "../../store/loginContext";
-import { fromServer } from "./normalizeEdit";
-
+import LoginContext, { useUser } from "../../store/loginContext";
+import { fromServer, normalizeCard } from "./normalizeEdit";
+import { useLocation } from 'react-router-dom'
+import ROUTES from "../../routes/ROUTES";
+import { toast } from 'react-toastify'
+import { useCardService } from "../../services/cardService";
 const EditCardPage = () => {
   const [inputsValue, setInputsValue] = useState({
     title: "",
@@ -37,15 +40,17 @@ const EditCardPage = () => {
     houseNumber: "",
   });
   let { id } = useParams(); //get id from url
-  const { login } = useContext(LoginContext);
+  const { user, addMyCard } = useUser();
+
+  const { createCard, editCard } = useCardService()
   useEffect(() => {
-    if (!id || !login) {
+    if (!id || !user) {
       return;
     }
     axios
       .get("/cards/" + id)
       .then(({ data }) => {
-        if (data.user_id == login._id) {
+        if (data.user_id == user._id) {
         } else {
 
         }
@@ -55,36 +60,78 @@ const EditCardPage = () => {
       .catch((err) => {
         console.log(err);
       });
-  }, [id, login]);
+  }, [id, user]);
   let keysArray = Object.keys(inputsValue);
 
   const handleInputsChange = (e) => {
+    console.log(e.target.value)
+    console.log(e.target.id)
     setInputsValue((cInputsValue) => ({
       ...cInputsValue,
       [e.target.id]: e.target.value,
     }));
   };
+  useEffect(() => {
+    console.log(inputsValue)
+  }, [inputsValue])
 
   const handleInputsBlur = (e) => {
-    const { error } = validateSchema[e.target.id]({
-      [e.target.id]: inputsValue[e.target.id],
-    });
-    console.log({ error });
-    if (error) {
-      setErrors((cErrors) => ({
-        ...cErrors,
-        [e.target.id]: error.details[0].message,
-      }));
-    } else {
-      setErrors((cErrors) => {
-        delete cErrors[e.target.id];
-        return { ...cErrors };
+    try {
+      const { error } = validateSchema[e.target.id]({
+        [e.target.id]: inputsValue[e.target.id],
       });
-    }
+      if (error) {
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          [e.target.id]: error.details[0].message,
+        }));
+      } else {
+        setErrors((prevErrors) => {
+          const { [e.target.id]: omit, ...restErrors } = prevErrors;
+          return { ...restErrors };
+        });
+      }
+    } catch (e) { }
   };
+
+  const { pathname } = useLocation()
+  const hasError = () => {
+    return Object.entries(errors).filter(([k, v]) => v !== undefined && v.length > 0).length > 0
+  }
+
+  const isCreatePage = () => pathname.includes(ROUTES.CREATECARD)
+  const submit = async () => {
+
+    const isCreate = isCreatePage()
+    if (hasError()) {
+      toast.error(`🦄 Error while ${isCreate ? "Creating" : "Editing"} card, please check all fields`, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+      });
+      return
+    }
+
+    if (isCreate) {
+      console.log(inputsValue)
+      const newCard = await createCard(normalizeCard(inputsValue))
+      if (newCard._id)
+        await addMyCard(newCard)
+    } else {
+      const newCard = await editCard(id, normalizeCard(inputsValue))
+      if (newCard._id)
+        await addMyCard(newCard)
+    }
+  }
 
   return (
     <Box
+
       sx={{
         marginTop: 8,
         display: "flex",
@@ -96,7 +143,7 @@ const EditCardPage = () => {
         <LockOutlinedIcon />
       </Avatar>
       <Typography component="h1" variant="h5">
-        Edit your card
+        {isCreatePage() ? "Create Card" : "Edit Your card"}
       </Typography>
       <Box component="form" noValidate sx={{ mt: 3 }}>
         <Grid container spacing={2}>
@@ -116,11 +163,12 @@ const EditCardPage = () => {
       <Button
         type="submit"
         fullWidth
+        onClick={submit}
         variant="contained"
         sx={{ mt: 3, mb: 2 }}
-        disabled={Object.keys(errors).length > 0}
+        disabled={hasError()}
       >
-        Sign Up
+        {isCreatePage() ? "Create" : "Save changes"}
       </Button>
     </Box>
   );

@@ -1,15 +1,15 @@
-import { useContext } from "react";
 import { Navigate } from "react-router-dom";
 import { useUser } from "../store/loginContext";
 import ROUTES from "../routes/ROUTES";
 
-const AuthGuard = ({ children }) => {
+const AlreadyLoggedInGuard = ({ children }) => {
   const { isLoggedIn } = useUser()
-  if (isLoggedIn()) {
+
+  if (!isLoggedIn()) {
     return children;
   } else {
-    return <Navigate to={ROUTES.LOGIN} />;
+    return <Navigate to={ROUTES.HOME} />;
   }
 };
 
-export default AuthGuard;
+export default AlreadyLoggedInGuard;

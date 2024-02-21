@@ -4,6 +4,8 @@ import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
+import { toast } from "react-toastify";
+
 import Link from "@mui/material/Link";
 import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
@@ -82,8 +84,33 @@ const RegisterPage = () => {
     console.log(normalizeRegister(inputsValue));
     try {
       await axios.post("/users", normalizeRegister(inputsValue));
+      toast.success(`🦄  Register Success, you may sign in!`, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+      });
       navigate(ROUTES.LOGIN);
     } catch (err) {
+      const errByFieldIfExists = err.response.data.split("Joi Error:")[1]
+      let error = "Logged in failed, please try again later";
+      if (errByFieldIfExists) {
+        error = errByFieldIfExists
+      }
+      toast.error(`🦄  Register Failed ${error}`, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+      });
       console.log("error from axios", err);
     }
   };

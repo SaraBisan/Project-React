@@ -14,10 +14,8 @@ import ModeIcon from "@mui/icons-material/Mode";
 import LocalPhoneIcon from "@mui/icons-material/LocalPhone";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import PropTypes from "prop-types";
-/**
- * title -> title
- * subtitle -> subheader
- */
+import { useUser } from "../store/loginContext";
+
 const CardComponent = ({
   title,
   subtitle,

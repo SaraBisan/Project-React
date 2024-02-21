@@ -6,13 +6,27 @@ import PortraitIcon from '@mui/icons-material/Portrait';
 import ReportGmailerrorredIcon from '@mui/icons-material/ReportGmailerrorred';
 import ROUTES from '../../routes/ROUTES';
 
-const FooterComponent = () => {
+const FooterComponent = ({
+  onTabSelect = () => { }, selectedTab = "About"
+}) => {
   return (
     <Paper elevation={4} sx={{ position: "sticky", mt: 2 }}>
-      <BottomNavigation showLabels>
-        <BottomNavigationAction label="About" icon={<ReportGmailerrorredIcon />} />
-        <BottomNavigationAction label="Faverits" icon={<FavoriteIcon />} />
-        <BottomNavigationAction label="My Cards" icon={<PortraitIcon />} />
+      <BottomNavigation showLabels value={selectedTab}>
+        <BottomNavigationAction
+          onClick={() => {
+            onTabSelect("About")
+          }}
+          value={"About"} label="About" icon={<ReportGmailerrorredIcon />} />
+        <BottomNavigationAction
+          onClick={() => {
+            onTabSelect("Favorites")
+          }}
+          value={"Favorites"} label="Favorites" icon={<FavoriteIcon />} />
+        <BottomNavigationAction
+          onClick={() => {
+            onTabSelect("My-Cards")
+          }}
+          value={"My-Cards"} label="My Cards" icon={<PortraitIcon />} />
       </BottomNavigation>
     </Paper>
   );

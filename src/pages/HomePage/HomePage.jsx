@@ -6,13 +6,13 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import ROUTES from "../../routes/ROUTES";
 import normalizeHome from "./normalizeHome";
-import LoginContext from "../../store/loginContext";
+import LoginContext, { useUser } from "../../store/loginContext";
 
 //https://monkfish-app-z9uza.ondigitalocean.app/bcard2/cards
 const HomePage = () => {
   const [dataFromServer, setDataFromServer] = useState([]);
   const navigate = useNavigate();
-  const { login } = useContext(LoginContext);
+  const { user, likeToggle } = useUser();
   useEffect(() => {
     axios
       .get("/cards")
@@ -26,16 +26,19 @@ const HomePage = () => {
   }, []);
   const dataFromServerFiltered = normalizeHome(
     dataFromServer,
-    login ? login._id : undefined
+    user ? user._id : undefined
   );
   if (!dataFromServerFiltered || !dataFromServerFiltered.length) {
     return <Typography>Could not find any items</Typography>;
   }
   const handleDeleteCard = (id) => {
+
+
     console.log("father: card to delete", id);
     setDataFromServer((currentDataFromServer) =>
       currentDataFromServer.filter((card) => card._id !== id)
     );
+
     console.log({ dataFromServerFiltered });
   };
 
@@ -59,6 +62,7 @@ const HomePage = () => {
     }
   };
 
+
   return (
     <Grid container spacing={2}>
       {dataFromServerFiltered.map((item, index) => (
@@ -74,7 +78,10 @@ const HomePage = () => {
             liked={item.liked}
             onDelete={handleDeleteCard}
             onEdit={handleEditCard}
-            onLike={handleLikeCard}
+            onLike={(id) => {
+              likeToggle(item)
+              handleLikeCard(id)
+            }}
           />
         </Grid>
       ))}
